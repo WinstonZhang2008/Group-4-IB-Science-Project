@@ -4,24 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Soil Suitability Checker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        canvas {
+            max-width: 300px;
+            max-height: 300px;
+            margin: 20px auto;
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <h1>Welcome to the Soil Suitability Checker</h1>
     <p>Analyze soil data and get crop recommendations.</p>
-    <form action="/analyze" method="POST">
+    <form id="soilForm">
         <label for="ph">Soil pH:</label>
         <input type="number" id="ph" name="ph" step="0.1" required>
         <br>
-        <label for="nitrogen">Nitrogen (N):</label>
-        <input type="number" id="nitrogen" name="nitrogen" required>
+        <label for="microbes">Microbes (quantity):</label>
+        <input type="number" id="microbes" name="microbes" required>
         <br>
-        <label for="phosphorus">Phosphorus (P):</label>
-        <input type="number" id="phosphorus" name="phosphorus" required>
+        <label for="phosphates">Phosphates:</label>
+        <input type="number" id="phosphates" name="phosphates" required>
         <br>
-        <label for="potassium">Potassium (K):</label>
+        <label for="potassium">Potassium:</label>
         <input type="number" id="potassium" name="potassium" required>
         <br>
-        <button type="submit">Analyze</button>
+        <label for="nitrates">Nitrates:</label>
+        <input type="number" id="nitrates" name="nitrates" required>
+        <br>
+        <label for="aeration">Aeration/Compaction:</label>
+        <input type="number" id="aeration" name="aeration" required>
+        <br>
+        <button type="button" onclick="plotHexagon()">Plot</button>
     </form>
+    <canvas id="hexagonChart"></canvas>
+
+    <script>
+        let chartInstance;
+
+        // Initialize the chart with empty data
+        function initializeHexagon() {
+            const ctx = document.getElementById('hexagonChart').getContext('2d');
+            const data = {
+                labels: ['Soil pH', 'Microbes', 'Phosphates', 'Potassium', 'Nitrates', 'Aeration'],
+                datasets: [{
+                    label: 'Soil Parameters',
+                    data: [0, 0, 0, 0, 0, 0],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2
+                }]
+            };
+
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100 // Adjust max value as needed
+                        }
+                    }
+                }
+            };
+
+            chartInstance = new Chart(ctx, config);
+        }
+
+        // Update the chart with user input
+        function plotHexagon() {
+            const ph = parseFloat(document.getElementById('ph').value) || 0;
+            const microbes = parseFloat(document.getElementById('microbes').value) || 0;
+            const phosphates = parseFloat(document.getElementById('phosphates').value) || 0;
+            const potassium = parseFloat(document.getElementById('potassium').value) || 0;
+            const nitrates = parseFloat(document.getElementById('nitrates').value) || 0;
+            const aeration = parseFloat(document.getElementById('aeration').value) || 0;
+
+            chartInstance.data.datasets[0].data = [ph, microbes, phosphates, potassium, nitrates, aeration];
+            chartInstance.update();
+        }
+
+        // Initialize the chart on page load
+        window.onload = initializeHexagon;
+    </script>
 </body>
 </html>
