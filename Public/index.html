@@ -1,95 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soil Suitability Checker</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        canvas {
-            max-width: 300px;
-            max-height: 300px;
-            margin: 20px auto;
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Crop Recommendation</title>
 </head>
 <body>
-    <h1>Welcome to the Soil Suitability Checker</h1>
-    <p>Analyze soil data and get crop recommendations.</p>
-    <form id="soilForm">
-        <label for="ph">Soil pH:</label>
-        <input type="number" id="ph" name="ph" step="0.1" required>
-        <br>
-        <label for="microbes">Microbes (quantity):</label>
-        <input type="number" id="microbes" name="microbes" required>
-        <br>
-        <label for="phosphates">Phosphates:</label>
-        <input type="number" id="phosphates" name="phosphates" required>
-        <br>
-        <label for="potassium">Potassium:</label>
-        <input type="number" id="potassium" name="potassium" required>
-        <br>
-        <label for="nitrates">Nitrates:</label>
-        <input type="number" id="nitrates" name="nitrates" required>
-        <br>
-        <label for="aeration">Aeration/Compaction:</label>
-        <input type="number" id="aeration" name="aeration" required>
-        <br>
-        <button type="button" onclick="plotHexagon()">Plot</button>
-    </form>
-    <canvas id="hexagonChart"></canvas>
+  <h1>Crop Recommendation System</h1>
 
-    <script>
-        let chartInstance;
+  <form id="cropForm">
+    <label>Soil pH: <input type="number" step="0.1" name="soil_pH" required></label><br>
+    <label>Microbial Activity (0–5): <input type="number" step="0.1" name="microbes" required></label><br>
+    <label>Phosphates (ppm): <input type="number" name="phosphates" required></label><br>
+    <label>Potassium (ppm): <input type="number" name="potassium" required></label><br>
+    <label>Nitrates (ppm): <input type="number" name="nitrates" required></label><br>
+    <label>Aeration/Compaction (0–5): <input type="number" step="0.1" name="aeration_compaction" required></label><br>
+    <button type="submit">Get Recommendation</button>
+  </form>
 
-        // Initialize the chart with empty data
-        function initializeHexagon() {
-            const ctx = document.getElementById('hexagonChart').getContext('2d');
-            const data = {
-                labels: ['Soil pH', 'Microbes', 'Phosphates', 'Potassium', 'Nitrates', 'Aeration'],
-                datasets: [{
-                    label: 'Soil Parameters',
-                    data: [0, 0, 0, 0, 0, 0],
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 2
-                }]
-            };
+  <h2 id="result"></h2>
 
-            const config = {
-                type: 'radar',
-                data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            max: 100 // Adjust max value as needed
-                        }
-                    }
-                }
-            };
+  <script>
+    const cropData = [
+      { crop: "Lettuce", soil_pH: 6.0, microbes: 4.5, phosphates: 20, potassium: 150, nitrates: 10, aeration_compaction: 3 },
+      { crop: "Tomato", soil_pH: 6.5, microbes: 3.5, phosphates: 40, potassium: 180, nitrates: 20, aeration_compaction: 4 },
+      { crop: "Beans", soil_pH: 6.8, microbes: 4.0, phosphates: 35, potassium: 160, nitrates: 15, aeration_compaction: 3 },
+      { crop: "Spinach", soil_pH: 6.2, microbes: 4.7, phosphates: 25, potassium: 140, nitrates: 12, aeration_compaction: 5 },
+      { crop: "Kale", soil_pH: 6.3, microbes: 3.8, phosphates: 30, potassium: 170, nitrates: 18, aeration_compaction: 4 }
+    ];
 
-            chartInstance = new Chart(ctx, config);
+    const weights = {
+      soil_pH: 0.16666,
+      microbes: 0.166666,
+      phosphates: 0.16666,
+      potassium: 0.16666,
+      nitrates: 0.16666,
+      aeration_compaction: 0.16666
+    };
+
+    const features = Object.keys(weights);
+
+    // Normalize a dataset
+    function normalizeData(data, featureList) {
+      const mins = {};
+      const maxs = {};
+      featureList.forEach(f => {
+        mins[f] = Math.min(...data.map(row => row[f]));
+        maxs[f] = Math.max(...data.map(row => row[f]));
+      });
+
+      return data.map(row => {
+        const norm = {};
+        featureList.forEach(f => {
+          norm[f] = (row[f] - mins[f]) / (maxs[f] - mins[f]);
+        });
+        norm.crop = row.crop;
+        return norm;
+      });
+    }
+
+    const normalizedData = normalizeData(cropData, features);
+
+    document.getElementById("cropForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const userInput = {};
+      features.forEach(f => {
+        userInput[f] = parseFloat(formData.get(f));
+      });
+
+      // Normalize user input using training data mins/maxs
+      const mins = {}, maxs = {};
+      features.forEach(f => {
+        mins[f] = Math.min(...cropData.map(row => row[f]));
+        maxs[f] = Math.max(...cropData.map(row => row[f]));
+      });
+
+      const normalizedUser = {};
+      features.forEach(f => {
+        normalizedUser[f] = (userInput[f] - mins[f]) / (maxs[f] - mins[f]);
+      });
+
+      // Apply weights and compute distance to each crop
+      let bestCrop = "";
+      let bestDistance = Infinity;
+
+      normalizedData.forEach(row => {
+        let dist = 0;
+        features.forEach(f => {
+          const diff = (normalizedUser[f] - row[f]) * weights[f];
+          dist += diff * diff;
+        });
+        if (dist < bestDistance) {
+          bestDistance = dist;
+          bestCrop = row.crop;
         }
+      });
 
-        // Update the chart with user input
-        function plotHexagon() {
-            const ph = parseFloat(document.getElementById('ph').value) || 0;
-            const microbes = parseFloat(document.getElementById('microbes').value) || 0;
-            const phosphates = parseFloat(document.getElementById('phosphates').value) || 0;
-            const potassium = parseFloat(document.getElementById('potassium').value) || 0;
-            const nitrates = parseFloat(document.getElementById('nitrates').value) || 0;
-            const aeration = parseFloat(document.getElementById('aeration').value) || 0;
-
-            chartInstance.data.datasets[0].data = [ph, microbes, phosphates, potassium, nitrates, aeration];
-            chartInstance.update();
-        }
-
-        // Initialize the chart on page load
-        window.onload = initializeHexagon;
-    </script>
+      document.getElementById("result").textContent = `Recommended Crop: ${bestCrop}`;
+    });
+  </script>
 </body>
 </html>
