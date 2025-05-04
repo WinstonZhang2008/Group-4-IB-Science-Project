@@ -3,22 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <title>Crop Recommendation</title>
+  <!-- Bootstrap CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <h1>Crop Recommendation System</h1>
+  <div class="container my-4">
+    <h1 class="mb-4">Crop Rec`ommendation System</h1>
+    <div class="row">
+      <!-- Left column: Form with outline -->
+      <div class="col-md-6 border rounded p-4">
+        <form id="cropForm" class="d-flex flex-column gap-3">
+          <div class="mb-2">
+            <label for="soil_pH" class="form-label">Soil pH: (Decimal values, average is 6.0-7.0)</label>
+            <input type="number" step="0.1" name="soil_pH" id="soil_pH" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label for="microbes" class="form-label">Microbial Activity: (Decimal values, average is 3.0-5.0)</label>
+            <input type="number" step="0.1" name="microbes" id="microbes" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label for="phosphates" class="form-label">Phosphates Ppm Level (Solid values, average is 10-50)</label>
+            <input type="number" name="phosphates" id="phosphates" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label for="potassium" class="form-label">Potassium Ppm Level (Solid values, average is 140-200)</label>
+            <input type="number" name="potassium" id="potassium" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label for="nitrates" class="form-label">Nitrates Level (Solid values, avarage is 10-20)</label>
+            <input type="number" name="nitrates" id="nitrates" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label for="aeration_compaction" class="form-label">Aeration/Compaction (Solid values, 0-5):</label>
+            <input type="number" step="0.1" name="aeration_compaction" id="aeration_compaction" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary align-self-start">Get Recommendation</button>
+        </form>
+      </div>
 
-  <form id="cropForm">
-    <label>Soil pH: <input type="number" step="0.1" name="soil_pH" required></label><br>
-    <label>Microbial Activity (0–5): <input type="number" step="0.1" name="microbes" required></label><br>
-    <label>Phosphates (ppm): <input type="number" name="phosphates" required></label><br>
-    <label>Potassium (ppm): <input type="number" name="potassium" required></label><br>
-    <label>Nitrates (ppm): <input type="number" name="nitrates" required></label><br>
-    <label>Aeration/Compaction (0–5): <input type="number" step="0.1" name="aeration_compaction" required></label><br>
-    <button type="submit">Get Recommendation</button>
-  </form>
-
-  <h2 id="result"></h2>
-
+      <!-- Right column: Output box with outline -->
+      <div class="col-md-6 border rounded p-4 d-flex align-items-center justify-content-center">
+        <h2 id="result" class="text-center w-100"></h2>
+      </div>
+    </div>
+  </div>
+  
   <script>
     const cropData = [
       { crop: "Lettuce", soil_pH: 6.0, microbes: 4.5, phosphates: 20, potassium: 150, nitrates: 10, aeration_compaction: 3 },
