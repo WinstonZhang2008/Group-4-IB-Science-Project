@@ -50,12 +50,33 @@
   
   <script>
     const cropData = [
-      { crop: "Lettuce", soil_pH: 6.0, microbes: 4.5, phosphates: 20, potassium: 150, nitrates: 10, aeration_compaction: 3 },
-      { crop: "Tomato", soil_pH: 6.5, microbes: 3.5, phosphates: 40, potassium: 180, nitrates: 20, aeration_compaction: 4 },
-      { crop: "Beans", soil_pH: 6.8, microbes: 4.0, phosphates: 35, potassium: 160, nitrates: 15, aeration_compaction: 3 },
-      { crop: "Spinach", soil_pH: 6.2, microbes: 4.7, phosphates: 25, potassium: 140, nitrates: 12, aeration_compaction: 5 },
-      { crop: "Kale", soil_pH: 6.3, microbes: 3.8, phosphates: 30, potassium: 170, nitrates: 18, aeration_compaction: 4 }
-    ];
+  { "crop": "Lettuce", "soil_pH": 6.0, "microbes": 4.5, "phosphates": 20, "potassium": 150, "nitrates": 10, "aeration_compaction": 3 },
+  { "crop": "Tomato", "soil_pH": 6.5, "microbes": 3.5, "phosphates": 40, "potassium": 180, "nitrates": 20, "aeration_compaction": 4 },
+  { "crop": "Beans", "soil_pH": 6.8, "microbes": 4.0, "phosphates": 35, "potassium": 160, "nitrates": 15, "aeration_compaction": 3 },
+  { "crop": "Spinach", "soil_pH": 6.2, "microbes": 4.7, "phosphates": 25, "potassium": 140, "nitrates": 12, "aeration_compaction": 5 },
+  { "crop": "Kale", "soil_pH": 6.3, "microbes": 3.8, "phosphates": 30, "potassium": 170, "nitrates": 18, "aeration_compaction": 4 },
+  { "crop": "Broccoli", "soil_pH": 6.5, "microbes": 4.2, "phosphates": 35, "potassium": 160, "nitrates": 20, "aeration_compaction": 4 },
+  { "crop": "Carrot", "soil_pH": 6.2, "microbes": 4.0, "phosphates": 30, "potassium": 150, "nitrates": 15, "aeration_compaction": 3 },
+  { "crop": "Peas", "soil_pH": 6.5, "microbes": 4.5, "phosphates": 25, "potassium": 140, "nitrates": 10, "aeration_compaction": 3 },
+  { "crop": "Chard", "soil_pH": 6.3, "microbes": 4.3, "phosphates": 30, "potassium": 160, "nitrates": 18, "aeration_compaction": 4 },
+  { "crop": "Radish", "soil_pH": 6.0, "microbes": 4.0, "phosphates": 20, "potassium": 130, "nitrates": 12, "aeration_compaction": 3 },
+  { "crop": "Arugula", "soil_pH": 6.2, "microbes": 4.1, "phosphates": 25, "potassium": 140, "nitrates": 14, "aeration_compaction": 3 },
+  { "crop": "Mustard Greens", "soil_pH": 6.3, "microbes": 4.2, "phosphates": 28, "potassium": 150, "nitrates": 16, "aeration_compaction": 4 },
+  { "crop": "Bok Choy", "soil_pH": 6.5, "microbes": 4.3, "phosphates": 30, "potassium": 160, "nitrates": 18, "aeration_compaction": 4 },
+  { "crop": "Beets", "soil_pH": 6.4, "microbes": 4.0, "phosphates": 32, "potassium": 155, "nitrates": 17, "aeration_compaction": 3 },
+  { "crop": "Turnips", "soil_pH": 6.3, "microbes": 4.1, "phosphates": 30, "potassium": 150, "nitrates": 16, "aeration_compaction": 3 },
+  { "crop": "Cabbage", "soil_pH": 6.5, "microbes": 4.2, "phosphates": 35, "potassium": 160, "nitrates": 20, "aeration_compaction": 4 },
+  { "crop": "Zucchini", "soil_pH": 6.0, "microbes": 4.0, "phosphates": 28, "potassium": 150, "nitrates": 15, "aeration_compaction": 3 },
+  { "crop": "Cucumber", "soil_pH": 6.2, "microbes": 4.1, "phosphates": 30, "potassium": 155, "nitrates": 16, "aeration_compaction": 3 },
+  { "crop": "Squash", "soil_pH": 6.0, "microbes": 4.0, "phosphates": 28, "potassium": 150, "nitrates": 15, "aeration_compaction": 3 },
+  { "crop": "Sweet Corn", "soil_pH": 6.5, "microbes": 4.3, "phosphates": 35, "potassium": 160, "nitrates": 20, "aeration_compaction": 4 },
+  { "crop": "Almond", "soil_pH": 6.5, "microbes": 4.0, "phosphates": 35, "potassium": 160, "nitrates": 15, "aeration_compaction": 3 },
+  { "crop": "Walnut", "soil_pH": 6.8, "microbes": 4.2, "phosphates": 40, "potassium": 170, "nitrates": 18, "aeration_compaction": 3 },
+  { "crop": "Pecan", "soil_pH": 6.5, "microbes": 4.1, "phosphates": 30, "potassium": 150, "nitrates": 20, "aeration_compaction": 4 },
+  { "crop": "Chestnut", "soil_pH": 6.0, "microbes": 3.9, "phosphates": 25, "potassium": 140, "nitrates": 12, "aeration_compaction": 3 },
+  { "crop": "Hazelnut", "soil_pH": 6.2, "microbes": 4.0, "phosphates": 30, "potassium": 150, "nitrates": 14, "aeration_compaction": 3 }
+]
+;
 
     const weights = {
       soil_pH: 0.16666,
