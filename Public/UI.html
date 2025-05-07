@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Soil Suitability & Crop Recommender</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #f4f6f8;
+      color: #333;
+    }
+
+    header {
+      background-color: #2e7d32;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin: 1rem 0 0.3rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #2e7d32;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1b5e20;
+    }
+
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      border-left: 5px solid #2e7d32;
+      background: #e8f5e9;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Soil Suitability & Crop Recommender</h1>
+    <p>Enter your soil data to find suitable crops</p>
+  </header>
+
+  <main>
+    <form id="soil-form">
+      <label for="ph">Soil pH</label>
+      <input type="number" id="ph" name="ph" step="0.1" min="0" max="14" required>
+
+      <label for="nitrate">Nitrate (mg/L)</label>
+      <input type="number" id="nitrate" name="nitrate" required>
+
+      <label for="phosphate">Phosphate (mg/L)</label>
+      <input type="number" id="phosphate" name="phosphate" required>
+
+      <label for="potassium">Potassium (mg/L)</label>
+      <input type="number" id="potassium" name="potassium" required>
+
+      <label for="aeration">Aeration Level</label>
+      <select id="aeration" name="aeration" required>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+
+      <label for="microbes">Microbial Density (qualitative)</label>
+      <select id="microbes" name="microbes" required>
+        <option value="poor">Poor</option>
+        <option value="moderate">Moderate</option>
+        <option value="rich">Rich</option>
+      </select>
+
+      <button type="submit">Recommend Crop</button>
+    </form>
+
+    <div class="result" id="result" style="display: none;">
+      <h3>Recommended Crop:</h3>
+      <p id="recommendation">Loading...</p>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('soil-form');
+    const resultBox = document.getElementById('result');
+    const recommendationText = document.getElementById('recommendation');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const data = {
+        ph: parseFloat(form.ph.value),
+        nitrate: parseFloat(form.nitrate.value),
+        phosphate: parseFloat(form.phosphate.value),
+        potassium: parseFloat(form.potassium.value),
+        aeration: form.aeration.value,
+        microbes: form.microbes.value
+      };
+
+      try {
+        const response = await fetch('http://localhost:5000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        recommendationText.textContent = result.crop || "No crop recommendation received.";
+        resultBox.style.display = 'block';
+      } catch (error) {
+        recommendationText.textContent = "Error connecting to model.";
+        resultBox.style.display = 'block';
+      }
+    });
+  </script>
+
+</body>
+</html>
