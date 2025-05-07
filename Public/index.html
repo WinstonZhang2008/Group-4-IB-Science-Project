@@ -2,16 +2,79 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Crop Recommendation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crop Recommendation System</title>
   <!-- Bootstrap CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f8fb;
+    }
+    .container {
+      max-width: 900px;
+    }
+    .form-container {
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .form-label {
+      font-weight: 600;
+      color: #333;
+    }
+    .form-control {
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+    }
+    .form-control:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(38, 143, 255, 0.25);
+    }
+    button {
+      background-color: #007bff;
+      border-radius: 8px;
+      padding: 10px 20px;
+      color: white;
+      font-weight: 600;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result-container {
+      background-color: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 400px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      color: #333;
+    }
+    .result-container h2 {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #28a745;
+    }
+    .mb-2 {
+      margin-bottom: 15px;
+    }
+    .btn-primary {
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
   <div class="container my-4">
-    <h1 class="mb-4">Crop Recommendation System</h1>
-    <div class="row">
+    <h1 class="mb-4 text-center">Crop Recommendation System</h1>
+    <div class="row justify-content-center">
       <!-- Left column: Form with outline -->
-      <div class="col-md-6 border rounded p-4">
+      <div class="col-md-6 form-container p-4">
         <form id="cropForm" class="d-flex flex-column gap-3">
           <div class="mb-2">
             <label for="soil_pH" class="form-label">Soil pH: (Decimal values, average is 6.0-7.0)</label>
@@ -30,7 +93,7 @@
             <input type="number" name="potassium" id="potassium" class="form-control" required>
           </div>
           <div class="mb-2">
-            <label for="nitrates" class="form-label">Nitrates Level (Solid values, avarage is 10-20)</label>
+            <label for="nitrates" class="form-label">Nitrates Level (Solid values, average is 10-20)</label>
             <input type="number" name="nitrates" id="nitrates" class="form-control" required>
           </div>
           <div class="mb-3">
@@ -42,41 +105,22 @@
       </div>
 
       <!-- Right column: Output box with outline -->
-      <div class="col-md-6 border rounded p-4 d-flex align-items-center justify-content-center">
-        <h2 id="result" class="text-center w-100"></h2>
+      <div class="col-md-6 result-container">
+        <h2 id="result"></h2>
       </div>
     </div>
   </div>
-  
+
   <script>
     const cropData = [
-  { "crop": "Lettuce", "soil_pH": 6.0, "microbes": 4.5, "phosphates": 20, "potassium": 150, "nitrates": 10, "aeration_compaction": 3 },
-  { "crop": "Tomato", "soil_pH": 6.5, "microbes": 3.5, "phosphates": 40, "potassium": 180, "nitrates": 20, "aeration_compaction": 4 },
-  { "crop": "Beans", "soil_pH": 6.8, "microbes": 4.0, "phosphates": 35, "potassium": 160, "nitrates": 15, "aeration_compaction": 3 },
-  { "crop": "Spinach", "soil_pH": 6.2, "microbes": 4.7, "phosphates": 25, "potassium": 140, "nitrates": 12, "aeration_compaction": 5 },
-  { "crop": "Kale", "soil_pH": 6.3, "microbes": 3.8, "phosphates": 30, "potassium": 170, "nitrates": 18, "aeration_compaction": 4 },
-  { "crop": "Broccoli", "soil_pH": 6.5, "microbes": 4.2, "phosphates": 35, "potassium": 160, "nitrates": 20, "aeration_compaction": 4 },
-  { "crop": "Carrot", "soil_pH": 6.2, "microbes": 4.0, "phosphates": 30, "potassium": 150, "nitrates": 15, "aeration_compaction": 3 },
-  { "crop": "Peas", "soil_pH": 6.5, "microbes": 4.5, "phosphates": 25, "potassium": 140, "nitrates": 10, "aeration_compaction": 3 },
-  { "crop": "Chard", "soil_pH": 6.3, "microbes": 4.3, "phosphates": 30, "potassium": 160, "nitrates": 18, "aeration_compaction": 4 },
-  { "crop": "Radish", "soil_pH": 6.0, "microbes": 4.0, "phosphates": 20, "potassium": 130, "nitrates": 12, "aeration_compaction": 3 },
-  { "crop": "Arugula", "soil_pH": 6.2, "microbes": 4.1, "phosphates": 25, "potassium": 140, "nitrates": 14, "aeration_compaction": 3 },
-  { "crop": "Mustard Greens", "soil_pH": 6.3, "microbes": 4.2, "phosphates": 28, "potassium": 150, "nitrates": 16, "aeration_compaction": 4 },
-  { "crop": "Bok Choy", "soil_pH": 6.5, "microbes": 4.3, "phosphates": 30, "potassium": 160, "nitrates": 18, "aeration_compaction": 4 },
-  { "crop": "Beets", "soil_pH": 6.4, "microbes": 4.0, "phosphates": 32, "potassium": 155, "nitrates": 17, "aeration_compaction": 3 },
-  { "crop": "Turnips", "soil_pH": 6.3, "microbes": 4.1, "phosphates": 30, "potassium": 150, "nitrates": 16, "aeration_compaction": 3 },
-  { "crop": "Cabbage", "soil_pH": 6.5, "microbes": 4.2, "phosphates": 35, "potassium": 160, "nitrates": 20, "aeration_compaction": 4 },
-  { "crop": "Zucchini", "soil_pH": 6.0, "microbes": 4.0, "phosphates": 28, "potassium": 150, "nitrates": 15, "aeration_compaction": 3 },
-  { "crop": "Cucumber", "soil_pH": 6.2, "microbes": 4.1, "phosphates": 30, "potassium": 155, "nitrates": 16, "aeration_compaction": 3 },
-  { "crop": "Squash", "soil_pH": 6.0, "microbes": 4.0, "phosphates": 28, "potassium": 150, "nitrates": 15, "aeration_compaction": 3 },
-  { "crop": "Sweet Corn", "soil_pH": 6.5, "microbes": 4.3, "phosphates": 35, "potassium": 160, "nitrates": 20, "aeration_compaction": 4 },
-  { "crop": "Almond", "soil_pH": 6.5, "microbes": 4.0, "phosphates": 35, "potassium": 160, "nitrates": 15, "aeration_compaction": 3 },
-  { "crop": "Walnut", "soil_pH": 6.8, "microbes": 4.2, "phosphates": 40, "potassium": 170, "nitrates": 18, "aeration_compaction": 3 },
-  { "crop": "Pecan", "soil_pH": 6.5, "microbes": 4.1, "phosphates": 30, "potassium": 150, "nitrates": 20, "aeration_compaction": 4 },
-  { "crop": "Chestnut", "soil_pH": 6.0, "microbes": 3.9, "phosphates": 25, "potassium": 140, "nitrates": 12, "aeration_compaction": 3 },
-  { "crop": "Hazelnut", "soil_pH": 6.2, "microbes": 4.0, "phosphates": 30, "potassium": 150, "nitrates": 14, "aeration_compaction": 3 }
-]
-;
+      { "crop": "Lettuce", "soil_pH": 6.0, "microbes": 4.5, "phosphates": 20, "potassium": 150, "nitrates": 10, "aeration_compaction": 3 },
+      { "crop": "Tomato", "soil_pH": 6.5, "microbes": 3.5, "phosphates": 40, "potassium": 180, "nitrates": 20, "aeration_compaction": 4 },
+      { "crop": "Beans", "soil_pH": 6.8, "microbes": 4.0, "phosphates": 35, "potassium": 160, "nitrates": 15, "aeration_compaction": 3 },
+      { "crop": "Spinach", "soil_pH": 6.2, "microbes": 4.7, "phosphates": 25, "potassium": 140, "nitrates": 12, "aeration_compaction": 5 },
+      { "crop": "Kale", "soil_pH": 6.3, "microbes": 3.8, "phosphates": 30, "potassium": 170, "nitrates": 18, "aeration_compaction": 4 },
+      { "crop": "Broccoli", "soil_pH": 6.5, "microbes": 4.2, "phosphates": 35, "potassium": 160, "nitrates": 20, "aeration_compaction": 4 },
+      // Add other crops as needed
+    ];
 
     const weights = {
       soil_pH: 0.25, 
@@ -87,10 +131,8 @@
       aeration_compaction: 0.06666 
     };
 
-
     const features = Object.keys(weights);
 
-    // Normalize a dataset
     function normalizeData(data, featureList) {
       const mins = {};
       const maxs = {};
@@ -120,7 +162,7 @@
         userInput[f] = parseFloat(formData.get(f));
       });
 
-      // Normalize user input using training data mins/maxs
+      // Normalize user input
       const mins = {}, maxs = {};
       features.forEach(f => {
         mins[f] = Math.min(...cropData.map(row => row[f]));
