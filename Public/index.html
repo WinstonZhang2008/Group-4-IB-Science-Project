@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -106,7 +104,7 @@
   <div class="container my-4">
     <h1 class="text-center">Crop Recommendation System</h1>
     <div class="row justify-content-center">
-      <!-- Left column: Form with outline -->
+      <!-- Left column: Form with the Outline -->
       <div class="col-md-6 form-container p-4">
         <form id="cropForm" class="d-flex flex-column gap-3">
           <div class="mb-3">
@@ -137,7 +135,7 @@
         </form>
       </div>
 
-      <!-- Right column: Output box with outline -->
+      <!-- Right column: Output Box with the Outline -->
       <div class="col-md-6 result-container">
         <h2 id="result"></h2>
         <div id="loading" class="loading" style="display: none;">Calculating...</div>
@@ -251,7 +249,7 @@
         const resultBox = document.getElementById("result");
         resultBox.textContent = `Recommended Crop: ${bestCrop}`;
         document.querySelector('.result-container').classList.add('visible');
-      }, 1000);  // Simulate delay for effect
+      }, 1000); 
     });
   </script>
 </body>
