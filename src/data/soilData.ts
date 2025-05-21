@@ -73,3 +73,7 @@ export const cropRequirements: CropRequirement[] = [
     martianNotes: 'Good storage capabilities and efficient use of vertical space in Martian soil columns'
   }
 ];
+
+export * from './cropRecommendationDB';
+export * from './coreDB';
+export * from './plantHealthDB';

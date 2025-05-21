@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { optimalSoilRanges } from '@/data/soilData';
 import SoilDataVisualizer from './SoilDataVisualizer';
+import { getAllCoreData } from '@/services/soilService';
+import { CoreData } from '@/data/coreDB';
 
 // Define form schema with validation
 const soilFormSchema = z.object({
@@ -20,8 +22,28 @@ const soilFormSchema = z.object({
 
 export type SoilFormData = z.infer<typeof soilFormSchema>;
 
+function getStatsFromCoreDB(coreDB: CoreData[]) {
+  // Example: calculate average N, P, K, pH, moisture from the DB
+  const stats: Record<string, number> = {};
+  const features = ['Nitrogen', 'Phosphorous', 'Potassium'];
+  features.forEach(f => {
+    stats[f] = coreDB.reduce((sum, row) => sum + parseFloat(row[f]), 0) / coreDB.length;
+  });
+  return stats;
+}
+
 const Visualizer: React.FC = () => {
   const [visualizerData, setVisualizerData] = useState<SoilFormData | null>(null);
+  const [coreDB, setCoreDB] = useState<CoreData[]>([]);
+  const [coreStats, setCoreStats] = useState<Record<string, number> | null>(null);
+
+  useEffect(() => {
+    // Load the core soil database on mount
+    getAllCoreData().then((data) => {
+      setCoreDB(data as CoreData[]);
+      setCoreStats(getStatsFromCoreDB(data as CoreData[]));
+    });
+  }, []);
 
   const {
     register,

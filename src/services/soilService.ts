@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { SoilFormData } from '@/components/SoilForm';
+import { cropRecommendationData, coreData, plantHealthData } from '@/data/soilData';
 
 // Function to submit soil data and get crop recommendations
 export async function getCropRecommendations(soilData: SoilFormData) {
@@ -56,4 +57,19 @@ export async function getSoilData() {
     console.error('Error getting soil data:', error);
     throw error;
   }
+}
+
+// Example: Fetch all crop recommendations
+export async function getAllCropRecommendations() {
+  return cropRecommendationData();
+}
+
+// Example: Fetch all core data
+export async function getAllCoreData() {
+  return coreData();
+}
+
+// Example: Fetch all plant health data
+export async function getAllPlantHealthData() {
+  return plantHealthData();
 }
