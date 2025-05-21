@@ -2,11 +2,11 @@
 
 // Optimal soil parameters for plant growth on Earth (baseline)
 export const optimalSoilRanges = {
-  pH: { min: 6.0, max: 7.5, unit: 'pH' },
+  pH: { min: 6.0, max: 7.0, unit: 'pH' },
   nitrogen: { min: 0.2, max: 0.5, unit: '%' },
   phosphorus: { min: 0.1, max: 0.3, unit: '%' },
   potassium: { min: 0.2, max: 0.5, unit: '%' },
-  moisture: { min: 20, max: 60, unit: '%' }
+  moisture: { min: 20, max: 60, unit: '%' },
 };
 
 // Crop requirements adjusted for Martian conditions

@@ -22,36 +22,54 @@ const soilFormSchema = z.object({
 export type SoilFormData = z.infer<typeof soilFormSchema>;
 
 function recommendCropsFromDB(soil: SoilFormData, db: CropRecommendation[]): { crop: string; score: number }[] {
-  // Normalize user input and DB values for fair comparison
-  const features = ['N', 'P', 'K', 'ph'];
+  // Only use the 4 required features present in the CSV
+  const features = [
+    { user: 'nitrogen', db: 'N' },
+    { user: 'phosphorus', db: 'P' },
+    { user: 'potassium', db: 'K' },
+    { user: 'pH', db: 'ph' },
+  ];
+
+  // Filter out rows with missing or non-numeric values
+  const filteredDB = db.filter(row =>
+    features.every(({ db: dbKey }) => row[dbKey] !== undefined && !isNaN(parseFloat(row[dbKey])))
+  );
 
   // Find min/max for normalization
   const mins: Record<string, number> = {};
   const maxs: Record<string, number> = {};
-  features.forEach(f => {
-    mins[f] = Math.min(...db.map(row => parseFloat(row[f])));
-    maxs[f] = Math.max(...db.map(row => parseFloat(row[f])));
+  features.forEach(({ db: dbKey }) => {
+    mins[dbKey] = Math.min(...filteredDB.map(row => parseFloat(row[dbKey])));
+    maxs[dbKey] = Math.max(...filteredDB.map(row => parseFloat(row[dbKey])));
   });
 
   // Normalize user input
   const normalizedUser: Record<string, number> = {};
-  normalizedUser['N'] = soil.nitrogen * 100; // assuming user input is 0-1, DB is 0-100
+  normalizedUser['N'] = soil.nitrogen * 100; // user input is 0-1, DB is 0-100
   normalizedUser['P'] = soil.phosphorus * 100;
   normalizedUser['K'] = soil.potassium * 100;
   normalizedUser['ph'] = soil.pH;
 
-  features.forEach(f => {
-    normalizedUser[f] = (normalizedUser[f] - mins[f]) / (maxs[f] - mins[f]);
+  features.forEach(({ db: dbKey }) => {
+    if (maxs[dbKey] !== mins[dbKey]) {
+      normalizedUser[dbKey] = (normalizedUser[dbKey] - mins[dbKey]) / (maxs[dbKey] - mins[dbKey]);
+    } else {
+      normalizedUser[dbKey] = 0.5; // fallback if all values are the same
+    }
   });
 
-  // Score each crop in the DB by distance to user input
+  // Score each crop in the DB by distance to user input (for N, P, K, ph)
   const cropScores: Record<string, { total: number; count: number }> = {};
-  db.forEach(row => {
+  filteredDB.forEach(row => {
     const rowNorm: Record<string, number> = {};
-    features.forEach(f => {
-      rowNorm[f] = (parseFloat(row[f]) - mins[f]) / (maxs[f] - mins[f]);
+    features.forEach(({ db: dbKey }) => {
+      if (maxs[dbKey] !== mins[dbKey]) {
+        rowNorm[dbKey] = (parseFloat(row[dbKey]) - mins[dbKey]) / (maxs[dbKey] - mins[dbKey]);
+      } else {
+        rowNorm[dbKey] = 0.5;
+      }
     });
-    const dist = Math.sqrt(features.reduce((sum, f) => sum + Math.pow(rowNorm[f] - normalizedUser[f], 2), 0));
+    const dist = Math.sqrt(features.reduce((sum, { db: dbKey }) => sum + Math.pow(rowNorm[dbKey] - normalizedUser[dbKey], 2), 0));
     const crop = row.label;
     if (!cropScores[crop]) cropScores[crop] = { total: 0, count: 0 };
     cropScores[crop].total += dist;
@@ -60,8 +78,15 @@ function recommendCropsFromDB(soil: SoilFormData, db: CropRecommendation[]): { c
 
   // Average and sort
   const ranked = Object.entries(cropScores)
-    .map(([crop, { total, count }]) => ({ crop, score: 1 - total / count })) // invert distance for score
+    .map(([crop, { total, count }]) => ({ crop, score: count > 0 ? 1 - total / count : 0 }))
     .sort((a, b) => b.score - a.score);
+
+  // Optionally, adjust scores based on user moisture input (not in DB)
+  // For now, just attach a warning if moisture is not used
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem('moistureWarning', 'true');
+  }
+
   return ranked;
 }
 
@@ -85,10 +110,10 @@ const SoilChecker: React.FC = () => {
     resolver: zodResolver(soilFormSchema),
     defaultValues: {
       pH: 7,
-      nitrogen: 0.3,
-      phosphorus: 0.2,
-      potassium: 0.3,
-      moisture: 40,
+      nitrogen: 0.5,
+      phosphorus: 0.5,
+      potassium: 0.5,
+      moisture: 50,
     },
   });
 
@@ -114,81 +139,36 @@ const SoilChecker: React.FC = () => {
           <div className="bg-card p-6 rounded-lg shadow-sm">
             <h2 className="text-xl font-semibold mb-4">Enter Soil Parameters</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div>
-                <Label htmlFor="pH">pH Level ({watchedValues.pH})</Label>
-                <div className="flex items-center gap-4 mt-2">
-                  <Slider
-                    id="pH"
-                    min={0}
-                    max={14}
-                    step={0.1}
-                    value={[watchedValues.pH]}
-                    onValueChange={(value) => handleSliderChange('pH', value)}
-                    className="flex-1"
-                  />
-                  <Input
-                    type="number"
-                    step="0.1"
-                    {...register('pH', { valueAsNumber: true })}
-                    className="w-20"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Optimal range: {optimalSoilRanges.pH.min} - {optimalSoilRanges.pH.max} {optimalSoilRanges.pH.unit}
-                </p>
+              <div className="mb-3">
+                <Label htmlFor="pH">pH Level (average: 6.0-7.0)</Label>
+                <Input type="number" step="0.1" {...register('pH', { valueAsNumber: true })} className="w-20" placeholder="Enter soil pH" />
+                <p className="text-xs text-muted-foreground mt-1">Optimal range: {optimalSoilRanges.pH.min} - {optimalSoilRanges.pH.max} {optimalSoilRanges.pH.unit}</p>
                 {errors.pH && <p className="text-red-500 text-xs mt-1">{errors.pH.message}</p>}
               </div>
-
-              <div>
-                <Label htmlFor="nitrogen">Nitrogen ({(watchedValues.nitrogen * 100).toFixed(1)}%)</Label>
-                <div className="flex items-center gap-4 mt-2">
-                  <Slider
-                    id="nitrogen"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={[watchedValues.nitrogen]}
-                    onValueChange={(value) => handleSliderChange('nitrogen', value)}
-                    className="flex-1"
-                  />
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...register('nitrogen', { valueAsNumber: true })}
-                    className="w-20"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Optimal range: {optimalSoilRanges.nitrogen.min * 100} - {optimalSoilRanges.nitrogen.max * 100}%
-                </p>
+              <div className="mb-3">
+                <Label htmlFor="nitrogen">Nitrogen (0-1, e.g. 0.3)</Label>
+                <Input type="number" step="0.01" {...register('nitrogen', { valueAsNumber: true })} className="w-20" placeholder="Enter nitrogen" />
+                <p className="text-xs text-muted-foreground mt-1">Optimal range: {optimalSoilRanges.nitrogen.min} - {optimalSoilRanges.nitrogen.max} {optimalSoilRanges.nitrogen.unit}</p>
                 {errors.nitrogen && <p className="text-red-500 text-xs mt-1">{errors.nitrogen.message}</p>}
               </div>
-
-              <div>
-                <Label htmlFor="phosphorus">Phosphorus ({(watchedValues.phosphorus * 100).toFixed(1)}%)</Label>
-                <div className="flex items-center gap-4 mt-2">
-                  <Slider
-                    id="phosphorus"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={[watchedValues.phosphorus]}
-                    onValueChange={(value) => handleSliderChange('phosphorus', value)}
-                    className="flex-1"
-                  />
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...register('phosphorus', { valueAsNumber: true })}
-                    className="w-20"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Optimal range: {optimalSoilRanges.phosphorus.min * 100} - {optimalSoilRanges.phosphorus.max * 100}%
-                </p>
+              <div className="mb-3">
+                <Label htmlFor="phosphorus">Phosphorus (0-1, e.g. 0.2)</Label>
+                <Input type="number" step="0.01" {...register('phosphorus', { valueAsNumber: true })} className="w-20" placeholder="Enter phosphorus" />
+                <p className="text-xs text-muted-foreground mt-1">Optimal range: {optimalSoilRanges.phosphorus.min} - {optimalSoilRanges.phosphorus.max} {optimalSoilRanges.phosphorus.unit}</p>
                 {errors.phosphorus && <p className="text-red-500 text-xs mt-1">{errors.phosphorus.message}</p>}
               </div>
-
+              <div className="mb-3">
+                <Label htmlFor="potassium">Potassium (0-1, e.g. 0.3)</Label>
+                <Input type="number" step="0.01" {...register('potassium', { valueAsNumber: true })} className="w-20" placeholder="Enter potassium" />
+                <p className="text-xs text-muted-foreground mt-1">Optimal range: {optimalSoilRanges.potassium.min} - {optimalSoilRanges.potassium.max} {optimalSoilRanges.potassium.unit}</p>
+                {errors.potassium && <p className="text-red-500 text-xs mt-1">{errors.potassium.message}</p>}
+              </div>
+              <div className="mb-3">
+                <Label htmlFor="moisture">Moisture (0-100, e.g. 40)</Label>
+                <Input type="number" step="1" {...register('moisture', { valueAsNumber: true })} className="w-20" placeholder="Enter moisture" />
+                <p className="text-xs text-muted-foreground mt-1">Optimal range: {optimalSoilRanges.moisture.min} - {optimalSoilRanges.moisture.max} {optimalSoilRanges.moisture.unit}</p>
+                {errors.moisture && <p className="text-red-500 text-xs mt-1">{errors.moisture.message}</p>}
+              </div>
               <Button type="submit" className="w-full">Analyze Soil</Button>
             </form>
           </div>
@@ -198,6 +178,11 @@ const SoilChecker: React.FC = () => {
           {analyzedData && recommendations ? (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold">Crop Recommendations (from Database)</h2>
+              {typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem('moistureWarning') === 'true' && (
+                <div className="bg-yellow-100 text-yellow-800 p-2 rounded mb-2 text-sm">
+                  Note: Moisture is not used in the crop recommendation because the database does not contain moisture data.
+                </div>
+              )}
               <p className="text-muted-foreground">
                 Based on your soil parameters and the real crop database, here are the most suitable crops:
               </p>
