@@ -13,6 +13,7 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         <h1 className="text-4xl font-bold tracking-tight mb-4">Mars Agriculture Project</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Exploring the potential of growing plants in Martian soil for sustainable food production
+          Made by Jahaan, Patrick, Rohan and Roneet
         </p>
       </div>
 
